@@ -1,7 +1,7 @@
 {
     "name": "swoolebe/swoolebe",
-    "description": "Swoole BE（Be Easy）框架。",
-    "keywords": ["Swoole", "BE", "框架", "framework"],
+    "description": "基于 swoole 扩展的超轻量级高效微服务框架（SwooleBe：Swoole Be Easy）",
+    "keywords": ["Swoole", "BE", "微服务", "框架"],
     "license": "MIT",
     "type": "project",
     "authors": [
@@ -16,7 +16,10 @@
         }
     ],
     "require": {
-        "php": ">=5.6.0"
+        "monolog/monolog": "~1.11"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.7.25"
     },
     "autoload": {
         "psr-4": {
@@ -25,7 +28,9 @@
             "Controller\\": "controller/",
             "Data\\": "data/",
             "Service\\": "service/",
-            "System\\": "system/"
+            "System\\": "system/",
+            "Template\\": "template/",
+            "Theme\\": "theme/"
         }
     }
 }

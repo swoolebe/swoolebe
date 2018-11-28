@@ -21,6 +21,10 @@ class Response
     private $response = null;
 
 
+    /**
+     * Response constructor.
+     * @param \Swoole\Http\Response $response
+     */
     public function __construct(\Swoole\Http\Response $response)
     {
         $this->response = $response;
@@ -91,11 +95,11 @@ class Response
      * @param string $template 模板名
      * @param string $theme 主题名
      */
-    public function display($template = null, $theme = null)
+    public function display($template = null)
     {
         ob_start();
         ob_clean();
-        $templateInstance = Be::getTemplate($template, $theme);
+        $templateInstance = Be::getTemplate($template);
         foreach ($this->data as $key => $val) {
             $templateInstance->$key = $val;
         }
@@ -131,7 +135,7 @@ class Response
      *
      * @param string $string 输出内空
      */
-    public function show($string = null)
+    public function endHtml($string = null)
     {
         if ($string === null) {
             $this->response->end();
@@ -146,12 +150,7 @@ class Response
      */
     public function __call($fn, $args)
     {
-        if (substr($fn, 0, 3) == 'set' && count($args) == 1) {
-            $this->data[lcfirst(substr($fn, 3))] = $args[0];
-            return true;
-        } else {
-            return call_user_func_array(array($this->response, $fn), $args);
-        }
+        return call_user_func_array(array($this->response, $fn), $args);
     }
 
 }

@@ -11,8 +11,6 @@ class Runtime
 {
     private $rootPath = null;
 
-    private $rootUrl = null;
-
     private $dataDir = 'data';
 
     private $cacheDir = 'cache';
@@ -57,30 +55,6 @@ class Runtime
         return $this->rootPath . '/' . $this->dataDir;
     }
 
-
-    /**
-     * @return string
-     */
-    public function getRootUrl()
-    {
-        if ($this->rootUrl === null) {
-            $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? 'https://' : 'http://';
-            $url .= isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ($_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT']));
-            $url .= substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/index.php'));
-
-            $this->rootUrl = $url;
-        }
-
-        return $this->rootUrl;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDataUrl()
-    {
-        return $this->getRootUrl() . '/' . $this->dataDir;
-    }
 
     /**
      * @param string $dataDir

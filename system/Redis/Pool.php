@@ -4,17 +4,31 @@ namespace System\Redis;
 /**
  * Redis 类
  */
-class Driver
+class Pool
 {
 
-    private $instance = null; // 数据库连接
+    private static $instances = []; // 数据库连接
 
-    protected $config = [];
 
-    public function __construct($config)
-    {
-        $this->config = $config;
+    public static function getInstance($redis) {
+
+        if (isset(self::$instances[$redis]) && count(self::$instances[$redis]) > 0) {
+            return array_shift(self::$instances[$redis]);
+        }
+
+
+
+        $config = Be::getConfig('Redis');
+        if (!isset($config->$redis)) {
+            throw new RuntimeException('Redis配置项（' . $redis . '）不存在！');
+        }
+
+        self::$cache['Redis'][$redis] = new \System\Redis\Driver($config->$redis);
+        return self::$cache['Redis'][$redis];
+
     }
+
+
 
     /**
      * 连接数据库
@@ -40,30 +54,6 @@ class Driver
 
             $this->instance = $instance;
         }
-    }
-
-    /**
-     * 获取 redis 实例
-     *
-     * @return \redis
-     */
-    public function getInstance()
-    {
-        $this->connect();
-        return $this->instance;
-    }
-
-    /**
-     * 封装 redis 方法
-     *
-     * @param string $fn redis 扩展方法名
-     * @param array() $args 传入的参数
-     * @return mixed
-     */
-    public function __call($fn, $args)
-    {
-        $this->connect();
-        return call_user_func_array(array($this->instance, $fn), $args);
     }
 
 }

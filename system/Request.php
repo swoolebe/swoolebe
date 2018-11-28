@@ -244,5 +244,12 @@ class Request
 
     }
 
+    /*
+     * 封装 setXxx 方法
+     */
+    public function __call($fn, $args)
+    {
+        return call_user_func_array(array($this->request, $fn), $args);
+    }
 }
 

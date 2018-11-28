@@ -29,8 +29,7 @@ abstract class Be
      */
     public static function getDb($db = 'master')
     {
-        $key = 'Db:' . $db;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
+        if (isset(self::$cache['Db'][$db])) return self::$cache['Db'][$db];
 
         $config = Be::getConfig('Db');
         if (!isset($config->$db)) {
@@ -42,8 +41,8 @@ abstract class Be
         $class = 'Phpbe\\System\\Db\\Driver\\' . $config['driver'] . 'Impl';
         if (!class_exists($class)) throw new \RuntimeException('数据库配置项（' . $db . '）指定的数据库驱动' . $config['driver'] . '不支持！');
 
-        self::$cache[$key] = new $class($config);
-        return self::$cache[$key];
+        self::$cache['Db'][$db] = new $class($config);
+        return self::$cache['Db'][$db];
     }
 
     /**
@@ -55,37 +54,7 @@ abstract class Be
      */
     public static function getRedis($redis = 'master')
     {
-        $key = 'Redis:' . $redis;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
-
-        $config = Be::getConfig('Redis');
-        if (!isset($config->redis)) {
-            throw new RuntimeException('Redis配置项（' . $redis . '）不存在！');
-        }
-
-        self::$cache[$key] = new \System\Redis\Driver($config->$redis);
-        return self::$cache[$key];
-    }
-
-    /**
-     * 获取MongoDB对象
-     *
-     * @param string $mongoDB MongoDB名
-     * @return \System\Redis\Driver
-     * @throws RuntimeException
-     */
-    public static function getMongoDB($mongoDB = 'master')
-    {
-        $key = 'MongoDB:' . $mongoDB;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
-
-        $config = Be::getConfig('MongoDB');
-        if (!isset($config->mongoDB)) {
-            throw new RuntimeException('MongoDB配置项（' . $mongoDB . '）不存在！');
-        }
-
-        self::$cache[$key] = new \System\MongoDB\Driver($config->$mongoDB);
-        return self::$cache[$key];
+        return \System\Redis\Pool::getInstance($redis);
     }
 
     /**
@@ -104,12 +73,9 @@ abstract class Be
             $class = $lib;
         }
 
-        if (isset(self::$cache[$class])) return self::$cache[$class];
-
         if (!class_exists($class)) throw new RuntimeException('库 ' . $class . ' 不存在！');
 
-        self::$cache[$class] = new $class();
-        return self::$cache[$class];
+        return new $class();
     }
 
     /**
@@ -121,19 +87,18 @@ abstract class Be
      */
     public static function getConfig($config)
     {
-        $key = 'Config:' . $config;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
+        if (isset(self::$cache['Config'][$config])) return self::$cache[$config];
 
         $class = 'Data\\Runtime\\Config\\' . $config;
         if (class_exists($class)) {
-            self::$cache[$key] = new $class();;
-            return self::$cache[$key];
+            self::$cache['Config'][$config] = new $class();;
+            return self::$cache['Config'][$config];
         }
 
         $class = 'Config\\' . $config;
         if (class_exists($class)) {
-            self::$cache[$key] = new $class();;
-            return self::$cache[$key];
+            self::$cache['Config'][$config] = new $class();;
+            return self::$cache['Config'][$config];
         }
 
         throw new RuntimeException('配置文件 ' . $config . ' 不存在！');
@@ -148,16 +113,14 @@ abstract class Be
      */
     public static function getService($service)
     {
-        $key = 'Service:' . $service;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
+        if (isset(self::$cache['Service'][$service])) return self::$cache['Service'][$service];
 
         $class = 'Service\\' . $service;
-
         if (!class_exists($class)) throw new RuntimeException('服务 ' . $service . ' 不存在！');
 
         $instance = new $class();
         if ($instance instanceof PublicService) {
-            self::$cache[$class] = $instance;
+            self::$cache['Service'][$service] = $instance;
         }
 
         return $instance;
@@ -230,19 +193,18 @@ abstract class Be
      */
     public static function getTableConfig($table)
     {
-        $key = 'TableConfig:' . $table;
-        if (isset(self::$cache[$key])) return self::$cache[$key];
+        if (isset(self::$cache['TableConfig'][$table])) return self::$cache['TableConfig'][$table];
 
         $class = 'TableConfig\\' . $table;
         if (class_exists($class)) {
-            self::$cache[$key] = new $class();;
-            return self::$cache[$key];
+            self::$cache['TableConfig'][$table] = new $class();;
+            return self::$cache['TableConfig'][$table];
         }
 
         $class = 'Data\\Runtime\\TableConfig\\' . $table;
         if (class_exists($class)) {
-            self::$cache[$key] = new $class();;
-            return self::$cache[$key];
+            self::$cache['TableConfig'][$table] = new $class();;
+            return self::$cache['TableConfig'][$table];
         }
 
         return new \System\Db\TableConfig();
@@ -257,30 +219,51 @@ abstract class Be
      */
     public static function getController($controller)
     {
-        $class = 'Controller\\' . $controller;
-        if (isset(self::$cache[$class])) return self::$cache[$class];
+        if (isset(self::$cache['Controller'][$controller])) return self::$cache['Controller'][$controller];
 
+        $class = 'Controller\\' . $controller;
         if (!class_exists($class)) throw new RuntimeException('控制器 ' . $controller . ' 不存在！');
 
         $instance = new $class();
         if ($instance instanceof PublicController) {
-            self::$cache[$class] = $instance;
+            self::$cache['Controller'][$controller] = $instance;
         }
 
         return $instance;
     }
 
     /**
+     * 获取指定的一个模板
+     *
+     * @param string $app 应用名
+     * @param string $template 模板名
+     * @return Template
+     * @throws RuntimeException
+     */
+    public static function getTemplate($template)
+    {
+        $class = 'Template\\' . str_replace('.', '\\', $template);
+        if (!class_exists($class)) throw new RuntimeException('模板（' . $class . '）不存在！');
+
+        return new $class();
+    }
+
+    /**
      * 清除工厂缓存数据
      *
      * @param string $key 指定缓存key，未指定时清除所有缓存数据
+     * @param string $instance 指定缓存key下的实例，未指定时清除该key下所有实例数据
      */
-    public static function cleanCache($key = null)
+    public static function cleanCache($key = null, $instance = null)
     {
         if ($key === null) {
             self::$cache = [];
         } else {
-            unset(self::$cache[$key]);
+            if ($instance === null) {
+                unset(self::$cache[$key]);
+            } else {
+                unset(self::$cache[$key][$instance]);
+            }
         }
     }
 
